@@ -39,7 +39,6 @@ void partitionInsert(Partition* p)
 
   p->stat.total_cycles  = rdtsc() - s;
   p->stat.cpo  = (uint64_t) (p->stat.total_cycles / data->len);
-  
 } 
 
 #endif
