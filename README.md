@@ -6,7 +6,6 @@ Using system knowledge to speed up HT insertion for kmer workload.
 # TODO
 
 Logistic
-- Cloudlab profile setup
 
 Development
 - Kmer: Add few common command line parameters
