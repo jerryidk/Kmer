@@ -26,7 +26,7 @@ void thread_worker(ThreadArgs* arg)
   destroyData(&data);
 }
 
-int main() 
+int main(int argc, char** argv) 
 {
   Threads ts;
   int num_threads = 2;
