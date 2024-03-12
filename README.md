@@ -10,8 +10,6 @@ Logistic
 
 Development
 - Kmer: Add few common command line parameters
-- Test: Come up with few interesting experiments ex. adjust HT size or Data size. 
-- Partition: Write a higher level Partition to manage HT and Data
 - Util: Add a precise timer to measure precise time of the code. 
 
 Experiment
@@ -28,3 +26,7 @@ Build Kmer counter
 Build Test or Experiements 
 
 `make test`
+
+# Experiments
+
+Run a script that corresponds to a certain experiments

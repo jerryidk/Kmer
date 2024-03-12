@@ -30,7 +30,7 @@ typedef struct {
   int num_threads;
   pthread_barrier_t barrier;
 
-  ThreadArgs* args;
+  ThreadArgs* args; // this a list: arguments for each threads. 
 } Threads;
 
 void initThreads(Threads* ts, int num)

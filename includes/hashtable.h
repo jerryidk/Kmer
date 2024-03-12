@@ -27,13 +27,12 @@ typedef struct {
 void printHashTable(HashTable *ht) 
 {
   
-//  KeyValuePair kv;
-//  for(uint64_t i=0; i<ht->size; i++){
-//    kv = ht->table[i];
-//    if(kv.occupied)
-//      printf("index: %lu key: %lu value: %lu \n", i, kv.key, kv.value);
-//  }
-
+ KeyValuePair kv;
+ for(uint64_t i=0; i<ht->size; i++){
+   kv = ht->table[i];
+   if(kv.occupied)
+     printf("index: %lu key: %lu value: %lu \n", i, kv.key, kv.value);
+ }
   printf("HT -- Count: %lu Collision: %lu Capacity: %lu\n", ht->count, ht->collision_count, ht->size);
 }
 
@@ -56,6 +55,21 @@ void initHashTable(HashTable* ht, uint64_t size) {
 void destroyHashTable(HashTable* ht)
 {
     free(ht->table);
+}
+
+// sum up all the value in the HT
+uint64_t aggregate(HashTable* ht)
+{
+    uint64_t sum = 0;
+    KeyValuePair* kv;
+    for(int i=0; i<ht->size; i++)
+    {
+        kv = &ht->table[i];
+        if(kv->occupied)
+            sum += kv->value;
+    }
+
+    return sum;
 }
 
 // Upsert operation: insert or update key-value pair
