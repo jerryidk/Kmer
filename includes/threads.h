@@ -18,6 +18,11 @@ typedef struct {
   int start_line_count; 
   int end_line_count;
 
+  int ht_size;
+  int data_size;
+  int k;
+  char* path;
+
 } ThreadArgs;
 
 typedef void (*ThreadHandler)(ThreadArgs*);

@@ -24,9 +24,7 @@ int main(int argc, char **argv)
   uint64_t ht_size = 100;
   double alpha = 0.5;
   bool csv = false;
-
   int e = 1;
-
   int opt;
 
   // Parse command-line options

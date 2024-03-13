@@ -5,11 +5,12 @@
 #include "hashtable.h"
 #include "data.h"
 #include "util.h"
-
+#include "kmer_reader.h"
 typedef struct
 {
   uint64_t cpo;
   uint64_t total_cycles;
+  uint64_t num_drop; // number of kv ht dropped. in case ht size is smaller than data size
   double alpha;
   double fill_factor;
 } Stats;
@@ -19,24 +20,34 @@ typedef struct
   HashTable *ht;
   Data *data;
   Stats stat;
+  KmerReader* reader;
+  int tid;
 } Partition;
 
-void initPartition(Partition *p, HashTable *ht, Data *data)
+void initPartition(Partition *p, uint64_t ht_size, uint64_t data_size)
 {
-  p->ht = ht;
-  p->data = data;
+  p->ht = (HashTable *)malloc(sizeof(HashTable));
+  initHashTable(p->ht, ht_size);
+  p->data = (Data *)malloc(sizeof(Data));
+  initData(p->data, data_size);
 }
 
 void createPartition(Partition *p, uint64_t ht_size, uint64_t data_size, double alpha)
 {
-  p->ht = (HashTable *)malloc(sizeof(HashTable));
-  initHashTable(p->ht, ht_size);
-
-  p->stat.alpha = alpha;
-  p->data = (Data *)malloc(sizeof(Data));
-  initData(p->data, data_size);
-
+  initPartition(p, ht_size, data_size);
   generate_zipf_data(data_size, alpha, p->data->content);
+  p->reader = NULL;
+  p->stat.alpha = alpha;
+  p->tid = 0;
+}
+
+void createParititonReaderThreaded(Partition *p, uint64_t ht_size, uint64_t data_size, KmerReader* reader, int tid)
+{
+  initPartition(p, ht_size, data_size);
+  p->stat.alpha = -1.0; // absence
+  p->reader = reader;
+  p->tid = tid;
+  read_data(reader, p->data);  
 }
 
 void destroyPartition(Partition *p)
@@ -45,6 +56,11 @@ void destroyPartition(Partition *p)
   free(p->ht);
   destroyData(p->data);
   free(p->data);
+
+  if(p->reader != NULL) 
+  {
+    destroyReader(p->reader); 
+  }
 }
 
 void printPartitionStats(Partition *p, bool csv)
@@ -52,7 +68,8 @@ void printPartitionStats(Partition *p, bool csv)
 
   if (csv)
   {
-    printf("%lu, %lu, %f, %lu, %lu, %lu, %f\n",
+    printf("%d, %lu, %lu, %f, %lu, %lu, %lu, %f\n",
+           p->tid,
            p->data->len,
            p->ht->size,
            p->stat.alpha,
@@ -65,16 +82,17 @@ void printPartitionStats(Partition *p, bool csv)
   {
 
     printf(
-        "Partition info                 \n"
-        "             -- data size: %lu \n"
-        "             -- ht size  : %lu \n"
-        "             -- alpha    : %f  \n"
-        "result                         \n"
-        "             -- total cycles     : %lu \n"
-        "             -- cycle per op     : %lu \n"
-        "             -- ht collisions    : %lu \n"
-        "             -- ht count         : %lu \n"
-        "             -- fill factor      : %f  \n",
+        "tid:%d,"
+        "data_size:%lu,"
+        "ht_size: %lu,"
+        "alpha: %f,"
+        "total_cycles: %lu,"
+        "cycle_per_op: %lu,"
+        "ht collisions: %lu,"
+        "ht count: %lu,"
+        "fill factor: %f,"
+        "num drop: %lu\n",
+        p->tid,
         p->data->len,
         p->ht->size,
         p->stat.alpha,
@@ -82,7 +100,8 @@ void printPartitionStats(Partition *p, bool csv)
         p->stat.cpo,
         p->ht->collision_count,
         p->ht->count,
-        p->stat.fill_factor);
+        p->stat.fill_factor,
+        p->stat.num_drop);
   }
 }
 
@@ -101,20 +120,23 @@ void partitionInsert(Partition *p)
   Data *data = p->data;
   HashTable *ht = p->ht;
 
+  uint64_t num_drop = 0; 
   uint64_t s = rdtsc();
 
   for (uint64_t i = 0; i < data->len; i++)
   {
     if (upsert(ht, data->content[i], 1) < 0)
     {
-      printf("Error, upsert failed! \n");
-      return;
+      num_drop++; // insertion failed, means it is full.
+      //printf("Error, upsert failed! \n");
+      //return;
     }
   }
 
   p->stat.total_cycles = rdtsc() - s;
   p->stat.cpo = (uint64_t)((double) p->stat.total_cycles / data->len);
   p->stat.fill_factor = (double)p->ht->count / p->ht->size;
+  p->stat.num_drop = num_drop;
 
   partitionSelfTest(p); 
 }
