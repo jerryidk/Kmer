@@ -17,7 +17,7 @@ typedef struct {
   
   int start_line_count; 
   int end_line_count;
-
+  int avg_seq_len;
   int ht_size;
   int data_size;
   int k;

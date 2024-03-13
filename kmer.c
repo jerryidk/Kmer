@@ -10,12 +10,14 @@
 #include "util.h"
 
 char *Usage_str =
-    "Usage: %s [-h] help               \n"
+    "Usage: %s\n"
+    "          [-h] help               \n"
     "          [-t] <ht_size>          \n"
     "          [-n] <data_size>        \n"
     "          [-p] <path>             \n"
     "          [-k] <kmer>             \n"
-    "          [-s] <num_threads>      \n";
+    "          [-s] <num_threads>      \n"
+    "          [-N] <avg_seq_len>      \n";
 
 void thread_worker(ThreadArgs *arg);
 
@@ -26,10 +28,12 @@ int main(int argc, char **argv)
   uint64_t ht_size = 100;
   int k = 5;
   int num_threads = 2;
+  int avg_seq_len = 200;
+
   int opt;
 
   // Parse command-line options
-  while ((opt = getopt(argc, argv, "hp:t:n:k:r:s:")) != -1)
+  while ((opt = getopt(argc, argv, "hp:t:n:k:r:s:N:")) != -1)
   {
     switch (opt)
     {
@@ -49,6 +53,8 @@ int main(int argc, char **argv)
       k = atoi(optarg);
     case 's':
       num_threads = atoi(optarg);
+    case 'N':
+      avg_seq_len = atoi(optarg);
     default:
       printf(Usage_str, argv[0]);
       exit(EXIT_FAILURE);
@@ -77,7 +83,8 @@ int main(int argc, char **argv)
     args->path = path;
     args->start_line_count = sl; // calculate lines
     args->end_line_count = sl + pl;
-    sl += pl; 
+    args->avg_seq_len = avg_seq_len;
+    sl += pl;
   }
 
   runThreads(&ts, thread_worker);
@@ -88,7 +95,7 @@ int main(int argc, char **argv)
 int estimate_partition_num(int lc, int n, int k, int d)
 {
   int alc = (lc + 4 - 1) / 4;     // since every 4 lines contains 1 sequence. we only get process 1/4 of the file.
-  int nkpl = n - k + 1;      // estimate number of kmer per line set N to some reasonable number for each line.
+  int nkpl = n - k + 1;           // estimate number of kmer per line set N to some reasonable number for each line.
   int num_parts = alc * nkpl / d; // estimated number of partitions needed for a given data size.
 
   return num_parts;
@@ -100,7 +107,11 @@ void thread_worker(ThreadArgs *args)
   KmerReader reader;
   initReaderConcurrent(&reader, args->path, args->k, args->start_line_count, args->end_line_count);
 
-  int num_parts = estimate_partition_num(args->end_line_count - args->start_line_count + 1, 500, args->k, args->data_size);
+  int num_parts = estimate_partition_num(
+      args->end_line_count - args->start_line_count + 1,
+      args->avg_seq_len,
+      args->k,
+      args->data_size);
 
   printf("worker %d started! num_partition created: %d sl: %d, el: %d\n",
          args->id,
