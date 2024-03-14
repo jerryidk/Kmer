@@ -14,7 +14,7 @@ kmer: $(build_dir)/kmer.o
 	gcc $^ -g -o $(build_dir)/$@ $(flags)
 
 $(build_dir)/kmer.o: kmer.c $(src)
-	gcc -c -g kmer.c -o $@ -I./includes -DDEBUG 
+	gcc -c -g kmer.c -o $@ -I./includes  
 
 clean: 
 	rm ./build/*

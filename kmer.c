@@ -198,6 +198,7 @@ void thread_worker(ThreadArgs *args)
     args->avg_fill = args->avg_fill / i;
   }
 
+  
+  destroyReader(&reader);
   free(ps);
-  destroyReader(p->reader);
 }
