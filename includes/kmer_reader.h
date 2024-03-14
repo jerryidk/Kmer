@@ -67,7 +67,6 @@ void destroyReader(KmerReader* reader)
   fclose(reader->file);
 }
 
-
 // get a single kmer from reader 
 Datatype read_one(KmerReader* reader) 
 {
@@ -88,8 +87,6 @@ Datatype read_one(KmerReader* reader)
       }
     }
 
-    // printf("new line: %s", reader->buffer);
-
     // loop was never entered.
     if(reader->buffer_pos != 0)
       return reader->done = true; 
@@ -97,7 +94,7 @@ Datatype read_one(KmerReader* reader)
   
   int start = reader->buffer_pos;
   uint8_t nt;
-  uint64_t kmer;
+  uint64_t kmer = 0;
   char c;
   for(int i = 0; i < reader->k; i++) {
     c = reader->buffer[i + start];  
@@ -123,7 +120,7 @@ Datatype read_one(KmerReader* reader)
           nt = 0;
           break;
     }
-    kmer = (kmer & nt) << 2;
+    kmer = (kmer | nt) << 2;
   }
 
   reader->buffer_pos++;
@@ -134,11 +131,10 @@ Datatype read_one(KmerReader* reader)
 uint64_t read_data(KmerReader* reader, Data* dst) 
 {
   uint64_t i = 0;
-  while(!reader->done && i < dst->len) {
-    dst->content[i] = read_one(reader);
+  while(!reader->done && i < dst->size) {
+    insertData(dst, read_one(reader));
     i++;
   }
-  return i;
 }
 #endif
 

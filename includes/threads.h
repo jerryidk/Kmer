@@ -12,9 +12,11 @@
 
 typedef struct {
 
+  // defaults
   int id;
   pthread_barrier_t* barrier;
   
+  // inputs
   int start_line_count; 
   int end_line_count;
   int avg_seq_len;
@@ -22,6 +24,12 @@ typedef struct {
   int data_size;
   int k;
   char* path;
+
+  // outputs
+  uint64_t avg_cpo;
+  uint64_t avg_tc;
+  uint64_t avg_collisions;
+  double   avg_fill;
 
 } ThreadArgs;
 

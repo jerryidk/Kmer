@@ -11,10 +11,10 @@ $(build_dir)/test.o: test.c $(src)
 	gcc -c test.c -o $@ -I./includes
 
 kmer: $(build_dir)/kmer.o
-	gcc $^ -o $(build_dir)/$@ $(flags)
+	gcc $^ -g -o $(build_dir)/$@ $(flags)
 
 $(build_dir)/kmer.o: kmer.c $(src)
-	gcc -c kmer.c -o $@ -I./includes
+	gcc -c -g kmer.c -o $@ -I./includes -DDEBUG 
 
 clean: 
 	rm ./build/*

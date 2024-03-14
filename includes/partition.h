@@ -35,19 +35,19 @@ void initPartition(Partition *p, uint64_t ht_size, uint64_t data_size)
 void createPartition(Partition *p, uint64_t ht_size, uint64_t data_size, double alpha)
 {
   initPartition(p, ht_size, data_size);
-  generate_zipf_data(data_size, alpha, p->data->content);
+  generate_zipf_data(p->data, alpha);
   p->reader = NULL;
   p->stat.alpha = alpha;
   p->tid = 0;
 }
 
-void createParititonReaderThreaded(Partition *p, uint64_t ht_size, uint64_t data_size, KmerReader* reader, int tid)
+int createParititonReaderThreaded(Partition *p, uint64_t ht_size, uint64_t data_size, KmerReader* reader, int tid)
 {
   initPartition(p, ht_size, data_size);
   p->stat.alpha = -1.0; // absence
   p->reader = reader;
   p->tid = tid;
-  read_data(reader, p->data);  
+  return read_data(reader, p->data);  // fill data as much as 
 }
 
 void destroyPartition(Partition *p)
@@ -57,10 +57,6 @@ void destroyPartition(Partition *p)
   destroyData(p->data);
   free(p->data);
 
-  if(p->reader != NULL) 
-  {
-    destroyReader(p->reader); 
-  }
 }
 
 void printPartitionStats(Partition *p, bool csv)
@@ -105,13 +101,14 @@ void printPartitionStats(Partition *p, bool csv)
   }
 }
 
-void partitionSelfTest(Partition *p)
+void partitionSelfTest(Partition *p, uint64_t drop)
 {
   uint64_t l = aggregate(p->ht);
   uint64_t r = p->data->len;
-  if (l != r)
+  if (l != (r - drop))
   {
-    printf("ERROR: Aggregation: %lu != Data len: %lu\n", l, r);
+    printf("ERROR: Aggregation: %lu != Data len: %lu Drop: %lu \n", l, r, drop);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -119,6 +116,11 @@ void partitionInsert(Partition *p)
 {
   Data *data = p->data;
   HashTable *ht = p->ht;
+
+  if(data->len == 0) 
+  {
+    return;
+  }
 
   uint64_t num_drop = 0; 
   uint64_t s = rdtsc();
@@ -128,8 +130,6 @@ void partitionInsert(Partition *p)
     if (upsert(ht, data->content[i], 1) < 0)
     {
       num_drop++; // insertion failed, means it is full.
-      //printf("Error, upsert failed! \n");
-      //return;
     }
   }
 
@@ -138,7 +138,7 @@ void partitionInsert(Partition *p)
   p->stat.fill_factor = (double)p->ht->count / p->ht->size;
   p->stat.num_drop = num_drop;
 
-  partitionSelfTest(p); 
+  partitionSelfTest(p, num_drop); 
 }
 
 void partitionQuery(Partition *p)
@@ -159,8 +159,6 @@ void partitionQuery(Partition *p)
   p->stat.total_cycles = rdtsc() - s;
   p->stat.cpo = (uint64_t)(p->stat.total_cycles / data->len);
   p->stat.fill_factor = (double)p->ht->count / p->ht->size;
-
-  partitionSelfTest(p); 
 }
 
 #endif

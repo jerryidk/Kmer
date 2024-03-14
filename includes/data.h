@@ -10,14 +10,29 @@ typedef uint64_t Datatype;
 
 typedef struct {
   Datatype* content;
-  uint64_t len;
+  uint64_t len; 
+  uint64_t size; 
 } Data;
 
-void initData(Data* data, uint64_t len)
+void initData(Data* data, uint64_t size)
 {
-  data->content = (Datatype*) aligned_alloc(4096, sizeof(Datatype) * len);
-  data->len = len;
+  data->content = (Datatype*) aligned_alloc(4096, sizeof(Datatype) * size);
+  data->size = size;
+  data->len = 0;
 } 
+
+void insertData(Data* data, Datatype ele) 
+{
+  if(data->len < data->size)
+  {
+    data->content[data->len] = ele;
+    data->len++;
+  }
+  else {
+    printf("ERROR: data is full, insertion failed\n");
+  }
+
+}
 
 void destroyData(Data* data)
 {
@@ -29,9 +44,10 @@ double zipf(int rank, double alpha) {
     return 1.0 / pow( (double) rank, alpha);
 }
 
-void generate_zipf_data(uint64_t n, double alpha, Datatype* data) {
+void generate_zipf_data(Data* data, double alpha) {
     double sum = 0.0;
     uint64_t i;
+    uint64_t n = data->size;
 
     // Calculate normalization constant
     for (i = 1; i <= n; i++) {
@@ -47,7 +63,7 @@ void generate_zipf_data(uint64_t n, double alpha, Datatype* data) {
         for (j = 1; j <= n; j++) {
             partial_sum += zipf(j, alpha);
             if (partial_sum >= r) {
-                data[i] = j;
+                insertData(data, j);
                 break;
             }
         }

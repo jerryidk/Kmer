@@ -47,9 +47,14 @@ uint64_t hash(uint64_t x) {
 // Initialize the hash table
 void initHashTable(HashTable* ht, uint64_t size) {
     ht->table =  (KeyValuePair*) aligned_alloc(4096, size * sizeof(KeyValuePair));
+    
     ht->size = size;
     ht->count = 0;
     ht->collision_count = 0;
+
+    KeyValuePair* kv;
+    for(int i=0; i<ht->size; i++)
+        ht->table[i].occupied = 0;
 }
 
 void destroyHashTable(HashTable* ht)
@@ -102,7 +107,10 @@ int upsert(HashTable* ht, Datatype key, uint64_t value) {
         index = (index + 1) % ht->size;
         ht->collision_count++;
         if(index == start_index)
+        {
+            printf("upsert failed can't find a spot for key %lu\n", key);
             return -1; 
+        }
     }
 }
 
