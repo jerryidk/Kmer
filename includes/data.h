@@ -34,6 +34,11 @@ void insertData(Data* data, Datatype ele)
 
 }
 
+void clearData(Data* data) 
+{
+  data->len = 0;
+}
+
 void destroyData(Data* data)
 {
   free(data->content);

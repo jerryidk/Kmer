@@ -24,6 +24,7 @@ typedef struct
   int tid;
 } Partition;
 
+
 void initPartition(Partition *p, uint64_t ht_size, uint64_t data_size)
 {
   p->ht = (HashTable *)malloc(sizeof(HashTable));
@@ -56,7 +57,6 @@ void destroyPartition(Partition *p)
   free(p->ht);
   destroyData(p->data);
   free(p->data);
-
 }
 
 void printPartitionStats(Partition *p, bool csv)

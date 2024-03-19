@@ -1,0 +1,29 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-I./includes",
+      "-o",
+      "build/test.o",
+      "test.c"
+    ],
+    "directory": "/home/jerry/Workspace/Kmer",
+    "file": "/home/jerry/Workspace/Kmer/test.c",
+    "output": "/home/jerry/Workspace/Kmer/build/test.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-g",
+      "-I./includes",
+      "-o",
+      "build/kmer.o",
+      "kmer.c"
+    ],
+    "directory": "/home/jerry/Workspace/Kmer",
+    "file": "/home/jerry/Workspace/Kmer/kmer.c",
+    "output": "/home/jerry/Workspace/Kmer/build/kmer.o"
+  }
+]

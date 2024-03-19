@@ -52,14 +52,39 @@ void initHashTable(HashTable* ht, uint64_t size) {
     ht->count = 0;
     ht->collision_count = 0;
 
-    KeyValuePair* kv;
     for(int i=0; i<ht->size; i++)
         ht->table[i].occupied = 0;
+}
+
+void clearHashTable(HashTable* ht)
+{
+    ht->count = 0;
+    ht->collision_count = 0;
+
+    for(int i=0; i<ht->size; i++)
+        ht->table[i].occupied = 0;
+   
 }
 
 void destroyHashTable(HashTable* ht)
 {
     free(ht->table);
+}
+
+void saveHashTable(HashTable* ht, char* filename)
+{
+    FILE *file = fopen(filename, "wb");
+    KeyValuePair* kv;
+    for(int i=0; i<ht->size; i++)
+    {
+        kv = &ht->table[i];
+        if(kv->occupied)
+        {
+            fwrite(&kv->key, sizeof(kv->key), 1, file); 
+            fwrite(&kv->value, sizeof(kv->value), 1, file); 
+        }
+    }
+    fclose(file);
 }
 
 // sum up all the value in the HT
