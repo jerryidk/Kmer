@@ -3,13 +3,12 @@
 # cat output_ht.txt | awk -F ',' '/per_op/ {print $2,$5,$6}'
 
 
-ht_size=300
-data_size=100
+ht_size=300   # HT size
+data_size=256 # buffer size
 path=/opt/dramhit/kmer_dataset/SRR1513870.fastq
 k=10
 num_threads=64
 seq_len=190
-#lc=156097668
 lc=156097668
-./build/kmer -t $ht_size -n $data_size  -s $num_threads -p $path -c $lc  -k $k -s $num_threads -N $seq_len 
+./build/kmer -t $ht_size -n $data_size  -s $num_threads -p $path -c $lc  -k $k -s $num_threads -N $seq_len > log.txt
  

@@ -147,7 +147,7 @@ void thread_worker(ThreadArgs *args) {
   int num_parts =
       estimate_partition_num(args->end_line_count - args->start_line_count + 1,
                              args->avg_seq_len, args->k, args->data_size);
-
+  printf("number of paritions! %d \n", num_parts);
 #ifdef DEBUG
   printf("worker %d started! num_partition created: %d sl: %d, el: %d\n",
          args->id, num_parts, args->start_line_count, args->end_line_count);
@@ -175,21 +175,24 @@ void thread_worker(ThreadArgs *args) {
       break;
     }
     
-    for (uint64_t j = 0; j < data.len; i++)
+    for (uint64_t j = 0; j < data.len; j++)
     {
-      if (upsert(&ht, data.content[i], 1) < 0)
+      if (upsert(&ht, data.content[j], 1) < 0)
       {
         printf("HT full\n");
       }
       else
         num_inserted++;
     }
-    sprintf(filename,"output-%d.bin", i);
+    sprintf(filename,"output-%d-%d.bin", i, args->id);
     saveHashTable(&ht,filename);
   }
 
   uint64_t total = rdtsc() - start;
-  printf("Tid %d, num_inserted: %lu, total: %lu, cpo: %lu\n",args->id, num_inserted, total, total/num_inserted);
+  uint64_t cpo = total/num_inserted; 
+  printf("Tid %d, num_inserted: %lu, total: %lu, cpo: %lu\n",args->id, num_inserted, total, cpo);
+
+  args->avg_cpo = cpo;
 
   destroyHashTable(&ht);
   destroyData(&data);
